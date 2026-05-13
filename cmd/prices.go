@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cs2cap/cli/internal/api"
+	"github.com/cs2cap/cli/internal/normalize"
 	"github.com/cs2cap/cli/internal/output"
 )
 
@@ -16,9 +17,10 @@ func newPricesCmd() *cobra.Command {
 	listCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List current lowest ask prices",
-		Example: `  cs2cap-cli prices list --name "AK-47 | Redline (Field-Tested)"
-  cs2cap-cli prices list --item-id 1234 --providers steam --providers buff163
-  cs2cap-cli prices list --name "★ Bayonet | Doppler" --phase ruby --currency EUR`,
+		Example: `  cs2cap prices list --name "AK-47 | Redline (Field-Tested)"
+  cs2cap prices list --name "AK-47 | Redline FT"          # wear shortcut
+  cs2cap prices list --item-id 1234 --providers steam --providers buff163
+  cs2cap prices list --name "★ Bayonet | Doppler" --phase ruby --currency EUR`,
 		RunE: func(c *cobra.Command, args []string) error {
 			var params api.ListPricesParams
 
@@ -26,7 +28,8 @@ func newPricesCmd() *cobra.Command {
 				params.ItemID = &itemID
 			}
 			if name, _ := c.Flags().GetString("name"); name != "" {
-				params.MarketHashName = &name
+				expanded := normalize.WearShortcut(name)
+				params.MarketHashName = &expanded
 			}
 			if phase, _ := c.Flags().GetString("phase"); phase != "" {
 				params.Phase = &phase
@@ -73,11 +76,12 @@ func newPricesCmd() *cobra.Command {
 	batchCmd := &cobra.Command{
 		Use:   "batch",
 		Short: "Batch price lookup by item IDs or names",
-		Example: `  cs2cap-cli prices batch --items 1,2,3
-  cs2cap-cli prices batch --names "AK-47 | Redline (FT)","★ Bayonet | Doppler"`,
+		Example: `  cs2cap prices batch --items 1,2,3
+  cs2cap prices batch --names "AK-47 | Redline FT","★ Bayonet | Doppler"`,
 		RunE: func(c *cobra.Command, args []string) error {
 			items, _ := c.Flags().GetIntSlice("items")
-			names, _ := c.Flags().GetStringSlice("names")
+			rawNames, _ := c.Flags().GetStringSlice("names")
+			names := normalize.WearShortcuts(rawNames)
 
 			req := api.BatchParams{
 				ItemIDs: items,

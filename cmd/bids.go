@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cs2cap/cli/internal/api"
+	"github.com/cs2cap/cli/internal/normalize"
 	"github.com/cs2cap/cli/internal/output"
 )
 
@@ -16,8 +17,9 @@ func newBidsCmd() *cobra.Command {
 	listCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List current highest buy orders",
-		Example: `  cs2cap-cli bids list --name "AK-47 | Redline (Field-Tested)"
-  cs2cap-cli bids list --item-id 1234 --providers steam --providers buff163`,
+		Example: `  cs2cap bids list --name "AK-47 | Redline (Field-Tested)"
+  cs2cap bids list --name "AK-47 | Redline FT"          # wear shortcut
+  cs2cap bids list --item-id 1234 --providers steam --providers buff163`,
 		RunE: func(c *cobra.Command, args []string) error {
 			var params api.ListBidsParams
 
@@ -25,7 +27,8 @@ func newBidsCmd() *cobra.Command {
 				params.ItemID = &itemID
 			}
 			if name, _ := c.Flags().GetString("name"); name != "" {
-				params.MarketHashName = &name
+				expanded := normalize.WearShortcut(name)
+				params.MarketHashName = &expanded
 			}
 			if phase, _ := c.Flags().GetString("phase"); phase != "" {
 				params.Phase = &phase
@@ -72,11 +75,12 @@ func newBidsCmd() *cobra.Command {
 	batchCmd := &cobra.Command{
 		Use:   "batch",
 		Short: "Batch bid lookup by item IDs or names",
-		Example: `  cs2cap-cli bids batch --items 1,2,3
-  cs2cap-cli bids batch --names "AK-47 | Redline (FT)","★ Bayonet | Doppler"`,
+		Example: `  cs2cap bids batch --items 1,2,3
+  cs2cap bids batch --names "AK-47 | Redline FT","★ Bayonet | Doppler"`,
 		RunE: func(c *cobra.Command, args []string) error {
 			items, _ := c.Flags().GetIntSlice("items")
-			names, _ := c.Flags().GetStringSlice("names")
+			rawNames, _ := c.Flags().GetStringSlice("names")
+			names := normalize.WearShortcuts(rawNames)
 
 			client := newAPIClient()
 			resp, err := client.BatchBids(c.Context(), api.BatchParams{ItemIDs: items, Names: names}.ToBatchBids())

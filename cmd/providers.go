@@ -10,8 +10,8 @@ func newProvidersCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "providers",
 		Short: "List supported marketplace providers",
-		Example: `  cs2cap-cli providers
-  cs2cap-cli providers --output json`,
+		Example: `  cs2cap providers
+  cs2cap providers --output json`,
 		RunE: func(c *cobra.Command, args []string) error {
 			client := newAPIClient()
 			resp, err := client.ListProviders(c.Context())

@@ -12,7 +12,7 @@ import (
 
 func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cs2cap-cli",
+		Use:   "cs2cap",
 		Short: "CLI for the CS2Cap API",
 		Long: `Command-line interface for querying Counter-Strike 2 marketplace data
 from the CS2Cap API. Provides unified access to prices, bids, sales,

@@ -1,11 +1,11 @@
-# cs2cap-cli
+# CLI for CS2 Skins
 
-**Command-line interface for the [CS2Cap API](https://docs.cs2c.app)** — query Counter-Strike 2 marketplace intelligence across 40+ providers from your terminal.
+**CLI tool for the [CS2Cap API](https://docs.cs2cap.com)** — get Counter-Strike 2 skins prices & market intelligence across 40+ marketplaces from your terminal.
 
 ```bash
-cs2cap-cli prices list --name "AK-47 | Redline (Field-Tested)"
-cs2cap-cli items search --q "Bayonet" --type weapon --output json
-cs2cap-cli providers
+cs2cap prices list --name "AK-47 | Redline (Field-Tested)"
+cs2cap items search --q "Bayonet" --type weapon --output json
+cs2cap providers
 ```
 
 ## Features
@@ -23,7 +23,7 @@ cs2cap-cli providers
 ## Requirements
 
 - Go 1.21+ (to build from source)
-- A CS2Cap API key (`sk_live_...` or `sk_test_...`) — sign up at [cs2c.app](https://cs2c.app)
+- A CS2Cap API key (`sk_live_...` or `sk_test_...`) — sign up at [cs2cap.com](https://cs2cap.com)
 
 ## Installation
 
@@ -39,7 +39,7 @@ go install github.com/cs2cap/cli@latest
 git clone https://github.com/cs2cap/cli.git
 cd cli
 make build
-./cs2cap-cli --help
+./cs2cap --helpcs
 ```
 
 The binary is statically compiled with no runtime dependencies.
@@ -51,21 +51,21 @@ The binary is statically compiled with no runtime dependencies.
 export CS2CAP_API_KEY=sk_live_your_key_here
 
 # List prices for an item
-cs2cap-cli prices list --name "AK-47 | Redline (Field-Tested)"
+cs2cap prices list --name "AK-47 | Redline (Field-Tested)"
 
 # Search for items
-cs2cap-cli items search --q "Bayonet" --limit 5
+cs2cap items search --q "Bayonet" --limit 5
 
 # Get item details
-cs2cap-cli items get 42
+cs2cap items get 42
 
 # List all providers
-cs2cap-cli providers
+cs2cap providers
 ```
 
 ## Configuration
 
-cs2cap-cli resolves settings in this order (last wins):
+cs2cap resolves settings in this order (last wins):
 
 1. CLI flags
 2. Environment variables
@@ -76,10 +76,10 @@ cs2cap-cli resolves settings in this order (last wins):
 
 ```bash
 # Interactive setup (writes ~/.cs2cap.yaml)
-cs2cap-cli config init
+cs2cap config init
 
 # View current config (key masked)
-cs2cap-cli config show
+cs2cap config show
 ```
 
 Example `~/.cs2cap.yaml`:
@@ -114,17 +114,17 @@ output: table
 List current lowest ask prices across providers:
 
 ```bash
-cs2cap-cli prices list --name "AK-47 | Redline (Field-Tested)"
-cs2cap-cli prices list --item-id 1234 --providers steam --providers buff163
-cs2cap-cli prices list --name "★ Bayonet | Doppler" --phase ruby --currency EUR
-cs2cap-cli prices list --output json
+cs2cap prices list --name "AK-47 | Redline (Field-Tested)"
+cs2cap prices list --item-id 1234 --providers steam --providers buff163
+cs2cap prices list --name "★ Bayonet | Doppler (Factory New)" --phase ruby --currency EUR
+cs2cap prices list --output json
 ```
 
 Batch price lookup by item IDs or names:
 
 ```bash
-cs2cap-cli prices batch --items 1,2,3
-cs2cap-cli prices batch --names "AK-47 | Redline (FT)","★ Bayonet | Doppler"
+cs2cap prices batch --items 1,2,3
+cs2cap prices batch --names "AK-47 | Redline (Field-Tested)","★ Bayonet | Doppler"
 ```
 
 ### Items
@@ -132,15 +132,15 @@ cs2cap-cli prices batch --names "AK-47 | Redline (FT)","★ Bayonet | Doppler"
 Search/filter the item catalog:
 
 ```bash
-cs2cap-cli items search --q "AK-47"
-cs2cap-cli items search --type weapon --rarity "Covert"
-cs2cap-cli items search --type sticker --limit 50
+cs2cap items search --q "AK-47"
+cs2cap items search --type weapon --rarity "Covert"
+cs2cap items search --type sticker --limit 50
 ```
 
 Get full item details by ID:
 
 ```bash
-cs2cap-cli items get 42
+cs2cap items get 42
 ```
 
 ### Bids
@@ -148,9 +148,9 @@ cs2cap-cli items get 42
 List current highest buy orders:
 
 ```bash
-cs2cap-cli bids list --name "AK-47 | Redline (Field-Tested)"
-cs2cap-cli bids list --item-id 1234 --providers steam --providers buff163
-cs2cap-cli bids batch --items 1,2,3
+cs2cap bids list --name "AK-47 | Redline (Field-Tested)"
+cs2cap bids list --item-id 1234 --providers steam --providers buff163
+cs2cap bids batch --items 1,2,3
 ```
 
 ### Sales
@@ -158,8 +158,8 @@ cs2cap-cli bids batch --items 1,2,3
 View recent sales history:
 
 ```bash
-cs2cap-cli sales list --name "AK-47 | Redline (Field-Tested)"
-cs2cap-cli sales list --item-id 1234 --providers steam --limit 10
+cs2cap sales list --name "AK-47 | Redline (Field-Tested)"
+cs2cap sales list --item-id 1234 --providers steam --limit 10
 ```
 
 ### Providers
@@ -167,8 +167,8 @@ cs2cap-cli sales list --item-id 1234 --providers steam --limit 10
 List all supported marketplace providers:
 
 ```bash
-cs2cap-cli providers
-cs2cap-cli providers --output json
+cs2cap providers
+cs2cap providers --output json
 ```
 
 ## Output Formats
@@ -182,12 +182,12 @@ Human-readable aligned columns with tab-separated values.
 Machine-readable JSON output using `json.MarshalIndent`:
 
 ```bash
-cs2cap-cli prices list --name "AK-47 | Redline (FT)" --output json
+cs2cap prices list --name "AK-47 | Redline (FT)" --output json
 ```
 
 ## Price Formatting
 
-All prices from the CS2Cap API are returned in **minor units** (cents). cs2cap-cli automatically divides by 100 for display:
+All prices from the CS2Cap API are returned in **minor units** (cents). cs2cap automatically divides by 100 for display:
 
 ```
 $1,234.56
@@ -198,7 +198,7 @@ $1,234.56
 ```bash
 git clone https://github.com/cs2cap/cli.git
 cd cli
-make build      # produces ./cs2cap-cli
+make build      # produces ./cs2cap
 make lint       # run go vet
 make test       # run tests
 make clean      # remove binary
@@ -207,7 +207,7 @@ make tidy       # clean go.mod dependencies
 
 ## Dependencies
 
-cs2cap-cli has minimal dependencies:
+cs2cap has minimal dependencies:
 
 | Package | Purpose |
 | --- | --- |

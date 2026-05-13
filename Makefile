@@ -1,6 +1,6 @@
 .PHONY: all build clean lint test tidy
 
-BINARY=cs2cap-cli
+BINARY=cs2cap
 
 all: tidy build
 

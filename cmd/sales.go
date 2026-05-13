@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cs2cap/cli/internal/api"
+	"github.com/cs2cap/cli/internal/normalize"
 	"github.com/cs2cap/cli/internal/output"
 )
 
@@ -16,8 +17,9 @@ func newSalesCmd() *cobra.Command {
 	listCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List recent sales for an item",
-		Example: `  cs2cap-cli sales list --name "AK-47 | Redline (Field-Tested)"
-  cs2cap-cli sales list --item-id 1234 --providers steam --limit 10`,
+		Example: `  cs2cap sales list --name "AK-47 | Redline (Field-Tested)"
+  cs2cap sales list --name "AK-47 | Redline FT"         # wear shortcut
+  cs2cap sales list --item-id 1234 --providers steam --limit 10`,
 		RunE: func(c *cobra.Command, args []string) error {
 			var params api.ListSalesParams
 
@@ -25,7 +27,8 @@ func newSalesCmd() *cobra.Command {
 				params.ItemID = &itemID
 			}
 			if name, _ := c.Flags().GetString("name"); name != "" {
-				params.MarketHashName = &name
+				expanded := normalize.WearShortcut(name)
+				params.MarketHashName = &expanded
 			}
 			params.Providers, _ = c.Flags().GetStringSlice("providers")
 			params.Limit, _ = c.Flags().GetInt("limit")

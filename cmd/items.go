@@ -18,9 +18,9 @@ func newItemsCmd() *cobra.Command {
 	searchCmd := &cobra.Command{
 		Use:   "search",
 		Short: "Search or filter the item catalog",
-		Example: `  cs2cap-cli items search --q "AK-47"
-  cs2cap-cli items search --type weapon --rarity "Covert"
-  cs2cap-cli items search --type sticker --limit 50`,
+		Example: `  cs2cap items search --q "AK-47"
+  cs2cap items search --type weapon --rarity "Covert"
+  cs2cap items search --type sticker --limit 50`,
 		RunE: func(c *cobra.Command, args []string) error {
 			params := api.SearchItemsParams{
 				Query:      c.Flags().Lookup("q").Value.String(),
@@ -69,7 +69,7 @@ func newItemsCmd() *cobra.Command {
 		Use:   "get [item-id]",
 		Short: "Get item details by ID",
 		Args:  cobra.ExactArgs(1),
-		Example: `  cs2cap-cli items get 42`,
+		Example: `  cs2cap items get 42`,
 		RunE: func(c *cobra.Command, args []string) error {
 			itemID, err := strconv.Atoi(args[0])
 			if err != nil {
