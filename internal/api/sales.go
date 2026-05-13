@@ -13,7 +13,6 @@ type ListSalesParams struct {
 	MarketHashName *string
 	Providers      []string
 	Limit          int
-	Offset         int
 }
 
 func (c *Client) ListSales(ctx context.Context, params ListSalesParams) (*models.SalesResponse, error) {
@@ -29,9 +28,6 @@ func (c *Client) ListSales(ctx context.Context, params ListSalesParams) (*models
 	}
 	if params.Limit > 0 {
 		q.Set("limit", strconv.Itoa(params.Limit))
-	}
-	if params.Offset > 0 {
-		q.Set("offset", strconv.Itoa(params.Offset))
 	}
 
 	var resp models.SalesResponse

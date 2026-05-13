@@ -15,10 +15,10 @@ func newBidsCmd() *cobra.Command {
 	}
 
 	listCmd := &cobra.Command{
-		Use:   "list",
+		Use:   "list [name]",
 		Short: "List current highest buy orders",
-		Example: `  cs2cap bids list --name "AK-47 | Redline (Field-Tested)"
-  cs2cap bids list --name "AK-47 | Redline FT"          # wear shortcut
+		Args:  cobra.MaximumNArgs(1),
+		Example: `  cs2cap bids list "AK-47 | Redline FT"
   cs2cap bids list --item-id 1234 --providers steam --providers buff163`,
 		RunE: func(c *cobra.Command, args []string) error {
 			var params api.ListBidsParams
@@ -26,7 +26,12 @@ func newBidsCmd() *cobra.Command {
 			if itemID, _ := c.Flags().GetInt("item-id"); c.Flags().Changed("item-id") {
 				params.ItemID = &itemID
 			}
-			if name, _ := c.Flags().GetString("name"); name != "" {
+			flagName, _ := c.Flags().GetString("name")
+			name := flagName
+			if name == "" && len(args) > 0 {
+				name = args[0]
+			}
+			if name != "" {
 				expanded := normalize.WearShortcut(name)
 				params.MarketHashName = &expanded
 			}
@@ -44,24 +49,27 @@ func newBidsCmd() *cobra.Command {
 				return err
 			}
 
-			return renderOutput(output.RowsFunc(func() ([]string, [][]string) {
-				if len(resp.Items) == 0 {
-					return nil, nil
-				}
-				header := []string{"Provider", "Item", "Phase", "Bid", "Orders", "Currency"}
-				rows := make([][]string, len(resp.Items))
-				for i, item := range resp.Items {
-					rows[i] = []string{
-						item.Provider,
-						item.MarketHashName,
-						output.Optional(item.Phase),
-						output.FormatPrice(item.HighestBid),
-						stringInt(item.NumBids),
-						resp.Meta.Currency,
+			return renderOutput(renderData{
+				data: resp,
+				toTable: func() ([]string, [][]string) {
+					if len(resp.Items) == 0 {
+						return nil, nil
 					}
-				}
-				return header, rows
-			}))
+					header := []string{"Provider", "Item", "Phase", "Bid", "Orders", "Currency"}
+					rows := make([][]string, len(resp.Items))
+					for i, item := range resp.Items {
+						rows[i] = []string{
+							item.Provider,
+							item.MarketHashName,
+							output.Optional(item.Phase),
+							output.FormatPrice(item.HighestBid),
+							stringInt(item.NumBids),
+							resp.Meta.Currency,
+						}
+					}
+					return header, rows
+				},
+			})
 		},
 	}
 	listCmd.Flags().Int("item-id", 0, "Filter by item ID")
@@ -88,25 +96,28 @@ func newBidsCmd() *cobra.Command {
 				return err
 			}
 
-			return renderOutput(output.RowsFunc(func() ([]string, [][]string) {
-				if len(resp.Items) == 0 {
-					return nil, nil
-				}
-				header := []string{"Item ID", "Name", "Provider", "Bid", "Orders"}
-				rows := make([][]string, 0)
-				for _, item := range resp.Items {
-					for _, quote := range item.Quotes {
-						rows = append(rows, []string{
-							stringInt(item.ItemID),
-							item.MarketHashName,
-							quote.Provider,
-							output.FormatPrice(quote.HighestBid),
-							stringInt(quote.NumBids),
-						})
+			return renderOutput(renderData{
+				data: resp,
+				toTable: func() ([]string, [][]string) {
+					if len(resp.Items) == 0 {
+						return nil, nil
 					}
-				}
-				return header, rows
-			}))
+					header := []string{"Item ID", "Name", "Provider", "Bid", "Orders"}
+					rows := make([][]string, 0)
+					for _, item := range resp.Items {
+						for _, quote := range item.Quotes {
+							rows = append(rows, []string{
+								stringInt(item.ItemID),
+								item.MarketHashName,
+								quote.Provider,
+								output.FormatPrice(quote.HighestBid),
+								stringInt(quote.NumBids),
+							})
+						}
+					}
+					return header, rows
+				},
+			})
 		},
 	}
 	batchCmd.Flags().IntSlice("items", nil, "Comma-separated item IDs")

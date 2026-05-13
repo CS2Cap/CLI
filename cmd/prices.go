@@ -15,19 +15,24 @@ func newPricesCmd() *cobra.Command {
 	}
 
 	listCmd := &cobra.Command{
-		Use:   "list",
+		Use:   "list [name]",
 		Short: "List current lowest ask prices",
-		Example: `  cs2cap prices list --name "AK-47 | Redline (Field-Tested)"
-  cs2cap prices list --name "AK-47 | Redline FT"          # wear shortcut
+		Args:  cobra.MaximumNArgs(1),
+		Example: `  cs2cap prices list "AK-47 | Redline FT"
   cs2cap prices list --item-id 1234 --providers steam --providers buff163
-  cs2cap prices list --name "★ Bayonet | Doppler" --phase ruby --currency EUR`,
+  cs2cap prices list "★ Bayonet | Doppler" --phase ruby --currency EUR`,
 		RunE: func(c *cobra.Command, args []string) error {
 			var params api.ListPricesParams
 
 			if itemID, _ := c.Flags().GetInt("item-id"); c.Flags().Changed("item-id") {
 				params.ItemID = &itemID
 			}
-			if name, _ := c.Flags().GetString("name"); name != "" {
+			flagName, _ := c.Flags().GetString("name")
+			name := flagName
+			if name == "" && len(args) > 0 {
+				name = args[0]
+			}
+			if name != "" {
 				expanded := normalize.WearShortcut(name)
 				params.MarketHashName = &expanded
 			}
@@ -45,24 +50,27 @@ func newPricesCmd() *cobra.Command {
 				return err
 			}
 
-			return renderOutput(output.RowsFunc(func() ([]string, [][]string) {
-				if len(resp.Items) == 0 {
-					return nil, nil
-				}
-				header := []string{"Provider", "Item", "Phase", "Price", "Qty", "Currency"}
-				rows := make([][]string, len(resp.Items))
-				for i, item := range resp.Items {
-					rows[i] = []string{
-						item.Provider,
-						item.MarketHashName,
-						output.Optional(item.Phase),
-						output.FormatPrice(item.LowestAsk),
-						stringInt(item.Quantity),
-						resp.Meta.Currency,
+			return renderOutput(renderData{
+				data: resp,
+				toTable: func() ([]string, [][]string) {
+					if len(resp.Items) == 0 {
+						return nil, nil
 					}
-				}
-				return header, rows
-			}))
+					header := []string{"Provider", "Item", "Phase", "Price", "Qty", "Currency"}
+					rows := make([][]string, len(resp.Items))
+					for i, item := range resp.Items {
+						rows[i] = []string{
+							item.Provider,
+							item.MarketHashName,
+							output.Optional(item.Phase),
+							output.FormatPrice(item.LowestAsk),
+							stringInt(item.Quantity),
+							resp.Meta.Currency,
+						}
+					}
+					return header, rows
+				},
+			})
 		},
 	}
 	listCmd.Flags().Int("item-id", 0, "Filter by item ID")
@@ -94,25 +102,28 @@ func newPricesCmd() *cobra.Command {
 				return err
 			}
 
-			return renderOutput(output.RowsFunc(func() ([]string, [][]string) {
-				if len(resp.Items) == 0 {
-					return nil, nil
-				}
-				header := []string{"Item ID", "Name", "Provider", "Price", "Qty"}
-				rows := make([][]string, 0)
-				for _, item := range resp.Items {
-					for _, quote := range item.Quotes {
-						rows = append(rows, []string{
-							stringInt(item.ItemID),
-							item.MarketHashName,
-							quote.Provider,
-							output.FormatPrice(quote.LowestAsk),
-							stringInt(quote.Quantity),
-						})
+			return renderOutput(renderData{
+				data: resp,
+				toTable: func() ([]string, [][]string) {
+					if len(resp.Items) == 0 {
+						return nil, nil
 					}
-				}
-				return header, rows
-			}))
+					header := []string{"Item ID", "Name", "Provider", "Price", "Qty"}
+					rows := make([][]string, 0)
+					for _, item := range resp.Items {
+						for _, quote := range item.Quotes {
+							rows = append(rows, []string{
+								stringInt(item.ItemID),
+								item.MarketHashName,
+								quote.Provider,
+								output.FormatPrice(quote.LowestAsk),
+								stringInt(quote.Quantity),
+							})
+						}
+					}
+					return header, rows
+				},
+			})
 		},
 	}
 	batchCmd.Flags().IntSlice("items", nil, "Comma-separated item IDs")

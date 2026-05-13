@@ -2,7 +2,6 @@ package output
 
 import (
 	"fmt"
-	"io"
 	"strings"
 )
 
@@ -60,8 +59,4 @@ func OptionalBool(b *bool) string {
 		return "yes"
 	}
 	return "no"
-}
-
-type Renderer interface {
-	Render(w io.Writer, v interface{}) error
 }

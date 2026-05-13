@@ -29,7 +29,7 @@ func newConfigCmd() *cobra.Command {
 				}
 			}
 
-			fmt.Print("API key (sk_live_... or sk_test_...): ")
+			fmt.Print("API key (sk_live_...): ")
 			var apiKey string
 			fmt.Scanln(&apiKey)
 
